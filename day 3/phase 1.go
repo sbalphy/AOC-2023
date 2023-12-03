@@ -6,57 +6,53 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
-func main() {
-	// regex to find game number and extract list of cube reveals
-	r_initial_cleanup, _ := regexp.Compile("Game ([0-9]+): (.*)")
-	// regex to identify number of cubes
-	r_red, _ := regexp.Compile("([0-9]+) red")
-	r_green, _ := regexp.Compile("([0-9]+) green")
-	r_blue, _ := regexp.Compile("([0-9]+) blue")
-	// max values for each cube
-	max_red := 12
-	max_green := 13
-	max_blue := 14
+func ispart(line int, start int, end int, schematic []string) bool {
+	// definimos uma bounding box em torno do numero e checamos todos os caracteres dentro dela
+	bounds_y_start := max(0, line-1)
+	bounds_y_end := min(len(schematic)-1, line+1)
+	bounds_x_start := max(0, start-1)
+	bounds_x_end := min(len(schematic[0])-1, end+1)
+	for i := bounds_y_start; i <= bounds_y_end; i++ {
+		for j := bounds_x_start; j <= bounds_x_end; j++ {
+			if issymbol(schematic[i][j]) {
+				return true
+			}
+		}
+	}
+	return false
+}
 
-	var sum int
+func isnumeric(char byte) bool {
+	return char >= 48 && char <= 57
+}
+
+func issymbol(char byte) bool {
+	return (char < 48 || char > 57) && char != 46
+}
+
+func main() {
 	f, _ := os.Open("input.txt")
 	scanner := bufio.NewScanner(f)
+	r_numbers, _ := regexp.Compile("[0-9]+")
+	var schematic []string
+	var sum int
 	for scanner.Scan() {
-		input := scanner.Text()
-		fmt.Println(input)
-		game, _ := strconv.Atoi(r_initial_cleanup.FindStringSubmatch(input)[1])
-		valid := true
-		reveals := strings.Split(r_initial_cleanup.FindStringSubmatch(input)[2], ";")
-		for i := 0; i < len(reveals); i++ {
-			// como eu faco um try except em go
-			var red int
-			red_matches := r_red.FindStringSubmatch(reveals[i])
-			if len(red_matches) == 2 {
-				red, _ = strconv.Atoi(red_matches[1])
-			}
-			var green int
-			green_matches := r_green.FindStringSubmatch(reveals[i])
-			if len(green_matches) == 2 {
-				green, _ = strconv.Atoi(green_matches[1])
-			}
-			var blue int
-			blue_matches := r_blue.FindStringSubmatch(reveals[i])
-			if len(blue_matches) == 2 {
-				blue, _ = strconv.Atoi(blue_matches[1])
-			}
-			if red > max_red || green > max_green || blue > max_blue {
-				valid = false
-				fmt.Printf("Validity for game %d failed at reveal %d \n", game, i)
-				break
-			}
-		}
-		if valid {
-			sum += game
-		}
-		fmt.Printf("Game %d, validity %t, current sum %d \n", game, valid, sum)
+		schematic = append(schematic, scanner.Text())
 	}
-	fmt.Printf("final sum: %d \n", sum)
+	for i := 0; i < len(schematic); i++ {
+		numbers_idx := r_numbers.FindAllStringIndex(schematic[i], -1)
+		for j := 0; j < len(numbers_idx); j++ {
+			start := numbers_idx[j][0]
+			end := numbers_idx[j][1] - 1
+			value, _ := strconv.Atoi(schematic[i][start : end+1])
+			part := ispart(i, start, end, schematic)
+			if part {
+				sum += value
+			}
+			fmt.Printf("Found number %d in line %d. Part = %t. Current sum: %d \n", value, i, part, sum)
+		}
+	}
+	fmt.Printf("final sum %d \n", sum)
 }
