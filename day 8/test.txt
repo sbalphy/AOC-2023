@@ -1,0 +1,12 @@
+LLLR
+
+AAA = (BBB, BBB)
+BBB = (CCC, CCC)
+CCC = (DDD, DDD)
+DDD = (AZZ, AZZ)
+AZZ = (AAA, EEE)
+EEE = (AZZ, AZZ)
+BBA = (GGG, GGG)
+GGG = (HHH, HHH)
+HHH = (BBA, BBZ)
+BBZ = (BBA, BBA)
