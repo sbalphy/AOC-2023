@@ -9,7 +9,7 @@ import (
 
 // This program will probably never actually terminate in your PC. I just ran it for a while, collected the output, killed the program and then did math with the output. Sorry!
 func main() {
-	f, _ := os.Open("test.txt")
+	f, _ := os.Open("input.txt")
 	scanner := bufio.NewScanner(f)
 	desert_map := make(map[string][2]string)
 	// back to da old me
